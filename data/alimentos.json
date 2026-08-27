@@ -1,0 +1,55 @@
+{
+  "medidas_caseiras": {
+    "colher de sopa": 25,
+    "colher grande": 40,
+    "concha": 100,
+    "xicara": 150,
+    "grama": 1,
+    "unidade": 100
+  },
+  "alimentos": [
+    {
+      "nome": "Arroz branco cozido",
+      "sinonimos": ["arroz", "arroz cozido", "arroz branco", "arroz branco cozido", "arroz cozido branco"],
+      "kcal_por_100g": 130
+    },
+    {
+      "nome": "Feijão carioca cozido",
+      "sinonimos": [
+        "feijao",
+        "feijão",
+        "feijão carioca",
+        "feijão cozido",
+        "feijão carioca cozido",
+        "feijao cozido",
+        "feijao carioca cozido"
+      ],
+      "kcal_por_100g": 76
+    },
+    {
+      "nome": "Peito de frango grelhado",
+      "sinonimos": [
+        "frango",
+        "peito de frango",
+        "frango grelhado",
+        "peito de frango grelhado",
+        "frango grelhado peito"
+      ],
+      "kcal_por_100g": 159
+    },
+    {
+      "nome": "Ovo de galinha cozido",
+      "sinonimos": [
+        "ovo",
+        "ovos",
+        "ovo cozido",
+        "ovos cozidos",
+        "ovo de galinha",
+        "ovo de galinha cozido",
+        "galinha",
+        "ovos de galinha cozidos"
+      ],
+      "kcal_por_100g": 146
+    }
+  ]
+}

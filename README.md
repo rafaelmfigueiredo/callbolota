@@ -1,0 +1,111 @@
+# 🍽️ Callbolômetro — Calculadora de Calorias
+
+Sistema **100% gratuito** de cálculo de calorias por **medidas caseiras**, com
+cadastro/login e histórico isolado por usuário. Roda **diretamente no navegador**,
+sem servidor e sem custo — e está pronto para **deploy futuro na Vercel**.
+
+---
+
+## ✅ Como rodar (localmente)
+
+1. Abra a pasta do projeto:
+   `C:\Users\rafael.figueiredo\Videos\calculo de caltorias`
+2. Dê **dois cliques** em **`iniciar.bat`**.
+3. O sistema abre sozinho no seu navegador padrão.
+
+> Alternativa: abra o arquivo `index.html` manualmente no navegador.
+
+---
+
+## 🧪 Como testar (exemplo)?
+
+1. Crie uma conta (ex.: usuário `maria`, senha `1234`).
+2. Na tela principal ("Nova refeição") preencha:
+   - **Quantidade:** `2`
+   - **Unidade:** `colheres grandes`
+   - **Alimento:** `arroz`
+3. Aparece em tempo real:
+   > 🔥 **2 colheres grandes de arroz branco cozido = 80g = 104 kcal**
+4. Clique em **Salvar no histórico**. A refeição fica registrada só para a sua conta.
+
+---
+
+## 🗂️ Estrutura do projeto
+
+```
+calculo de caltorias/
+├── iniciar.bat            # botão mágico: abre o sistema no navegador
+├── index.html            # front-end (Login/Cadastro + Dashboard)
+├── css/
+│   └── style.css         # visual limpo e responsivo
+├── js/
+│   ├── motor.js          # motor de cálculo (regra de três, sinônimos, plurais)
+│   ├── storage.js        # cadastro/login + histórico por usuário (localStorage)
+│   └── app.js            # lógica de interface e eventos
+├── data/
+│   └── alimentos.json    # medidas caseiras + alimentos (TACO simplificada)
+├── vercel.json           # config p/ deploy futuro na Vercel
+└── README.md             # este arquivo
+```
+
+---
+
+## 🧠 Motor de cálculo (regra de três)
+
+```
+peso_total = quantidade × fator_da_medida
+kcal       = (peso_total / 100) × kcal_por_100g
+```
+
+- **Medidas caseiras** (fator em gramas/ml):
+  `colher de sopa 25`, `colher grande 40`, `concha 100`, `xicara 150`, `grama 1`, `unidade 100`
+- O motor **normaliza plurais** (ex.: `colheres grandes` → `colher grande`,
+  `xícaras` → `xicara`) e busca alimentos por **sinônimos** (ex.: `feijao` → `Feijão carioca cozido`).
+
+**Alimentos na base (TACO simplificada):**
+
+| Alimento | kcal/100g | Sinônimos |
+|---|---|---|
+| Arroz branco cozido | 130 | arroz, arroz cozido |
+| Feijão carioca cozido | 76 | feijao, feijão, feijão carioca |
+| Peito de frango grelhado | 159 | frango, peito de frango |
+| Ovo de galinha cozido | 146 | ovo, ovos |
+
+---
+
+## 🔒 Isolamento de dados por usuário
+
+Os dados ficam no `localStorage` do navegador:
+
+- Contas criadas → `callbolota_users`
+- Sessão atual → `callbolota_sessao`
+- Histórico → `callbolota_hist_<usuario>` (um por usuário)
+
+Cada usuário **só vê e gerencia o próprio histórico**.
+
+> ⚠️ **Demo local:** em produção/na internet, troque esse armazenamento por
+> autenticação/banco reais (ex.: Supabase Auth + Postgres) — o `localStorage`
+> é por navegador e não é à prova de segurança para senhas.
+
+---
+
+## ☁️ Deploy futuro na Vercel (grátis)
+
+O projeto já é um site estático pronto:
+
+1. Crie a conta gratuita em [vercel.com](https://vercel.com).
+2. No painel: **Add New → Project** e importe sua conta Git (**GitHub/GitLab/Bitbucket**).
+3. Importe este repositório.
+4. Framework Preset: **Other** (não precisa de build).
+5. **Deploy** 🚀 — sua URL `https://SEU-PROJETO.vercel.app` fica no ar de graça.
+
+O arquivo `vercel.json` já cuida das rotas limpas e do SPA.
+
+> Lembrete: ao colocar online, o histórico passa a viver no navegador de cada
+> visitante (não é compartilhado). Para histórico na nuvem compartilhado, evolua
+> para um backend + banco (ex.: Supabase, gratuitos).
+
+---
+
+Qualquer dúvida: você mesmo pode editar `data/alimentos.json` para incluir
+mais alimentos (basta seguir o mesmo formato).

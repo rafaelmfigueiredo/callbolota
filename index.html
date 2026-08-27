@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR" data-theme="claro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Callbolômetro — Calculadora de Calorias</title>
+  <link rel="stylesheet" href="css/style.css?v=9" />
+</head>
+<body>
+  <!-- ============ TELA DE LOGIN / CADASTRO ============ -->
+  <main id="view-auth" class="view auth-view">
+    <section class="card auth-card">
+      <header class="brand">
+        <div class="logo">🍽️</div>
+        <h1>Callbolômetro</h1>
+        <p>Calculadora de calorias por medidas caseiras</p>
+      </header>
+
+      <!-- Abas -->
+      <div class="tabs" role="tablist">
+        <button id="tab-login" class="tab active" role="tab" data-tab="login">Entrar</button>
+        <button id="tab-cadastro" class="tab" role="tab" data-tab="cadastro">Criar conta</button>
+      </div>
+
+      <!-- Login -->
+      <form id="form-login" class="tabpanel" autocomplete="on">
+        <label>Usuário
+          <input type="text" id="login-user" placeholder="ex.: maria" autocomplete="username" />
+        </label>
+        <label>Senha
+          <input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password" />
+        </label>
+        <button type="submit" class="btn primary">Entrar</button>
+      </form>
+
+      <!-- Cadastro -->
+      <form id="form-cadastro" class="tabpanel" autocomplete="on">
+        <label>Usuário
+          <input type="text" id="cad-user" placeholder="Escolha um nome de usuário" autocomplete="username" />
+        </label>
+        <label>Senha
+          <input type="password" id="cad-pass" placeholder="Mínimo 4 caracteres" autocomplete="new-password" />
+        </label>
+        <label>Confirmar senha
+          <input type="password" id="cad-pass2" placeholder="Repita a senha" autocomplete="new-password" />
+        </label>
+        <button type="submit" class="btn primary">Criar conta</button>
+      </form>
+
+      <p class="msg" id="auth-msg"></p>
+      <p class="neta">Gratuito • Funciona offline • Cada usuário tem seu histórico</p>
+    </section>
+  </main>
+
+  <!-- ============ DASHBOARD ============ -->
+  <main id="view-dashboard" class="view dash hidden">
+    <header class="topbar">
+      <div class="topbar-brand">🍽️ <strong>Callbolômetro</strong></div>
+      <!-- Data e hora atuais -->
+      <div id="relogio" class="relogio" title="Data e hora atuais"></div>
+      <div class="topbar-right">
+        <!-- Meta de calorias diária (destaque, em uma única linha) -->
+        <div id="meta-diaria" class="meta-diaria-top" title="Meta de calorias diária"></div>
+        <!-- Alternar tema claro/escuro (opção do usuário, fora dos dados) -->
+        <button type="button" id="btn-tema" class="btn-tema" title="Alternar modo claro/escuro">🌙</button>
+        <div class="user-menu">
+          <button type="button" id="user-menu-trigger" class="user-menu-trigger" aria-haspopup="true" aria-expanded="false">
+            <span id="dash-user"></span>
+            <span class="caret">▾</span>
+          </button>
+          <div id="user-menu-dropdown" class="user-menu-dropdown hidden" role="menu">
+            <button type="button" id="btn-meus-dados" class="menu-item" role="menuitem">👤 Meus dados</button>
+            <button type="button" id="btn-sair" class="menu-item danger" role="menuitem">🚪 Sair</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-cal">
+      <!-- Calendário do mês/ano selecionado -->
+      <section class="card cal-card">
+        <div class="cal-topo">
+          <button type="button" id="mes-anterior" class="btn-nav" title="Mês anterior">◀</button>
+          <select id="sel-mesano" class="sel-mesano" title="Selecionar mês e ano"></select>
+          <button type="button" id="mes-seguinte" class="btn-nav" title="Mês seguinte">▶</button>
+        </div>
+        <div id="calendario" class="calendario"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ============ MODAL DE PERFIL (primeiro login / edição) ============ -->
+  <div id="modal-perfil" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="perfil-modal-titulo">📋 Complete seu perfil</h2>
+        <p>Estas informações ficam salvas para <strong id="perfil-modal-user"></strong>.</p>
+      </div>
+      <form id="form-perfil">
+        <div class="grid2">
+          <label>Peso atual (kg)
+            <input type="number" id="perf-peso" min="30" max="400" step="0.1" placeholder="ex.: 72,5" required />
+          </label>
+          <label>Meta de peso (kg)
+            <input type="number" id="perf-meta" min="30" max="400" step="0.1" placeholder="ex.: 68" />
+          </label>
+          <label>Altura (cm)
+            <input type="number" id="perf-altura" min="50" max="250" step="0.1" placeholder="ex.: 170" required />
+          </label>
+          <label>Meta de calorias / dia
+            <input type="number" id="perf-kcaloria" min="0" step="10" placeholder="ex.: 2000" required />
+          </label>
+        </div>
+
+        <label>Data de início (cadastro)
+          <input type="date" id="perf-datainicio" required />
+        </label>
+
+        <!-- IMC calculado em tempo real -->
+        <div id="perf-imc" class="resultado neutral">
+          Informe peso e altura para calcular o IMC.
+        </div>
+
+        <div class="row-btns">
+          <button type="button" id="btn-perfil-cancelar" class="btn ghost">Cancelar</button>
+          <button type="submit" class="btn primary">Salvar perfil</button>
+        </div>
+        <p id="perfil-msg" class="msg"></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/motor.js?v=9"></script>
+  <script src="js/storage.js?v=9"></script>
+  <!-- dados.js contém a base embutida p/ funcionar offline (file://) -->
+  <script src="js/dados.js?v=1"></script>
+  <script src="js/app.js?v=9"></script>
+</body>
+</html>
