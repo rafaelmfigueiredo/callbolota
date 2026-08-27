@@ -174,11 +174,11 @@ input[type="date"] { color-scheme: light dark; }
 }
 .cal-num { font-size: 14px; font-weight: 600; color: var(--texto); }
 .cal-dia.hoje { border-color: var(--verde); background: var(--verde-claro); }
-.cal-dia.hoje .cal-num { color: var(--verde-escuro); font-weight: 800; }
+.cal-dia.hoje .cal-num { color: var(--verde-escuro); font-weight: 800; margin-top: 22px; }
 .btn-refeicoes {
-  position: absolute; top: 0; right: 0; width: 32px; height: 32px;
-  border: none; border-radius: 0 8px 0 8px; background: var(--laranja); color: #fff;
-  font-size: 19px; font-weight: 700; line-height: 1; padding: 0; cursor: pointer;
+  position: absolute; top: 0; right: 0; width: 24px; height: 24px;
+  border: none; border-radius: 0 7px 0 7px; background: var(--laranja); color: #fff;
+  font-size: 15px; font-weight: 700; line-height: 1; padding: 0; cursor: pointer;
   transition: .15s;
 }
 .btn-refeicoes:hover { filter: brightness(.92); }
