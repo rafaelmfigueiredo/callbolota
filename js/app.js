@@ -29,6 +29,11 @@
   const calEl = document.getElementById("calendario");
   const btnMesAnterior = document.getElementById("mes-anterior");
   const btnMesSeguinte = document.getElementById("mes-seguinte");
+  const painelRefeicoes = document.getElementById("painel-refeicoes");
+  const gruposRefeicao = document.getElementById("grupos-refeicao");
+  const refeicaoFormulario = document.getElementById("refeicao-formulario");
+  const refeicoesData = document.getElementById("refeicoes-data");
+  const btnFecharRefeicoes = document.getElementById("btn-fechar-refeicoes");
 
   // Perfil / menu do usuário
   const metaDiaria = document.getElementById("meta-diaria");
@@ -151,7 +156,7 @@
       const ehHoje = mesmoMes && dia === diaHoje;
       html += '<div class="cal-dia' + (ehHoje ? " hoje" : "") + '">' +
         '<span class="cal-num">' + dia + "</span>" +
-        (ehHoje ? '<button type="button" class="btn-refeicoes" title="Ver refeições do dia" aria-label="Ver refeições do dia">↗</button>' : "") +
+        (ehHoje ? '<button type="button" class="btn-refeicoes" data-data="' + valorData(calAno, calMes, dia) + '" title="Ver refeições do dia">Refeições</button>' : "") +
         "</div>";
     }
     html += "</div>";
@@ -167,6 +172,102 @@
   }
 
   function nro(v) { return Math.round(Number(v) * 100) / 100; }
+
+  const GRUPOS_REFEICAO = ["Café da Manhã", "Lanche da Manhã", "Almoço", "Lanche da tarde", "Janta", "Lanche Noite"];
+  let dataRefeicaoAberta = null;
+  let grupoRefeicaoAberto = null;
+
+  function valorData(ano, mes, dia) {
+    return ano + "-" + dois(mes + 1) + "-" + dois(dia);
+  }
+
+  function textoData(data) {
+    const partes = data.split("-").map(Number);
+    return partes[2] + " de " + MESES[partes[1] - 1] + " de " + partes[0];
+  }
+
+  function mostrarPainelRefeicoes(data) {
+    dataRefeicaoAberta = data;
+    grupoRefeicaoAberto = null;
+    painelRefeicoes.classList.remove("hidden");
+    refeicoesData.textContent = textoData(data);
+    refeicaoFormulario.classList.add("hidden");
+    refeicaoFormulario.innerHTML = "";
+    gruposRefeicao.innerHTML = GRUPOS_REFEICAO.map((grupo) =>
+      '<button type="button" class="grupo-refeicao" data-grupo="' + esc(grupo) + '">' +
+      '<span>' + esc(grupo) + '</span><span class="grupo-seta">›</span></button>'
+    ).join("");
+  }
+
+  function fecharPainelRefeicoes() {
+    painelRefeicoes.classList.add("hidden");
+    grupoRefeicaoAberto = null;
+  }
+
+  function abrirGrupoRefeicao(grupo) {
+    grupoRefeicaoAberto = grupo;
+    refeicaoFormulario.classList.remove("hidden");
+    refeicaoFormulario.innerHTML =
+      '<div class="formulario-topo"><h3>' + esc(grupo) + '</h3>' +
+      '<button type="button" class="btn-voltar-grupos">Todos os grupos</button></div>' +
+      '<div class="itens-refeicao"></div>' +
+      '<button type="button" class="btn-adicionar-item" title="Adicionar outro alimento">+ Adicionar alimento</button>' +
+      '<button type="button" class="btn primary btn-calcular-refeicao">Calcular refeição</button>' +
+      '<div class="resultado-refeicao" aria-live="polite"></div>';
+    adicionarLinhaRefeicao();
+  }
+
+  function adicionarLinhaRefeicao() {
+    const lista = refeicaoFormulario.querySelector(".itens-refeicao");
+    const linha = document.createElement("div");
+    linha.className = "item-refeicao-form";
+    linha.innerHTML =
+      '<label>Alimento<input type="text" class="campo-alimento" placeholder="ex.: arroz" autocomplete="off"></label>' +
+      '<label>Quantidade<input type="number" class="campo-quantidade" min="0.01" step="0.01" placeholder="ex.: 2"></label>' +
+      '<label>Medida<select class="campo-unidade">' + Object.keys(BASE && BASE.medidas_caseiras || {}).map((medida) =>
+        '<option value="' + esc(medida) + '">' + esc(medida) + '</option>').join("") + '</select></label>' +
+      '<button type="button" class="btn-remover-item" title="Remover alimento" aria-label="Remover alimento">×</button>';
+    lista.appendChild(linha);
+    linha.querySelector(".campo-alimento").focus();
+  }
+
+  function calcularGrupoRefeicao() {
+    const resultado = refeicaoFormulario.querySelector(".resultado-refeicao");
+    const linhas = Array.from(refeicaoFormulario.querySelectorAll(".item-refeicao-form"));
+    if (!BASE) { resultado.className = "resultado-refeicao erro"; resultado.textContent = "A base de alimentos ainda está carregando."; return; }
+    let total = 0;
+    const calculados = [];
+    try {
+      linhas.forEach((linha) => {
+        const alimento = linha.querySelector(".campo-alimento").value.trim();
+        const quantidade = linha.querySelector(".campo-quantidade").value;
+        const unidade = linha.querySelector(".campo-unidade").value;
+        if (!alimento) throw new Error("Informe o alimento em todas as linhas.");
+        const calculado = Motor.calcular(BASE, quantidade, unidade, alimento);
+        total += calculado.kcal;
+        calculados.push(calculado);
+      });
+    } catch (e) {
+      resultado.className = "resultado-refeicao erro";
+      resultado.textContent = e.message;
+      return;
+    }
+    resultado.className = "resultado-refeicao ok";
+    resultado.innerHTML = calculados.map((item) =>
+      '<div class="resultado-item"><span>' + esc(item.alimento.nome) + '</span><strong>' + nro(item.kcal) + ' kcal</strong></div>'
+    ).join("") + '<div class="total-refeicao">Total: ' + nro(total) + ' kcal</div>';
+    const usuario = Storage.usuarioAtual();
+    if (usuario) Storage.salvarRefeicao(usuario, {
+      dataLocal: dataRefeicaoAberta,
+      data: dataRefeicaoAberta + "T12:00:00",
+      grupo: grupoRefeicaoAberto,
+      itens: calculados.map((item) => ({ alimento: item.alimento.nome, quantidade: item.quantidade, unidade: item.unidadeDigita, kcal: item.kcal })),
+      totalKcal: total,
+    }).catch((e) => {
+      resultado.className = "resultado-refeicao erro";
+      resultado.textContent = e.message;
+    });
+  }
 
 
   // ----- Perfil -----
@@ -199,13 +300,13 @@
   }
 
   /** Abre o modal de perfil (novo, do primeiro login, ou edição). */
-  function abrirModalPerfil(usuario) {
+  async function abrirModalPerfil(usuario) {
     perfilMsg.textContent = "";
     perfilMsg.className = "msg";
     perfilModalUser.textContent = usuario;
 
-    const existente = Storage.carregarPerfil(usuario);
-    const info = Storage.usuarioInfo(usuario);
+    const existente = await Storage.carregarPerfil(usuario);
+    const info = await Storage.usuarioInfo(usuario);
     // Título muda: 1º login vs. consulta/edição
     perfilModalTitulo.textContent = existente ? "📋 Meus dados" : "📋 Complete seu perfil";
     // data de início: já salvo ou data de cadastro ou hoje
@@ -256,8 +357,8 @@
   }
 
   /** Preenche a meta de calorias diária - em uma única linha, em destaque. */
-  function renderMetaDiaria(usuario) {
-    const p = Storage.carregarPerfil(usuario);
+  async function renderMetaDiaria(usuario) {
+    const p = await Storage.carregarPerfil(usuario);
     const meta = metaDoPerfil(p);
     if (!p || meta == null) {
       metaDiaria.innerHTML = "";
@@ -270,7 +371,7 @@
     metaDiaria.title = "Meta de calorias diária: " + meta + " kcal";
   }
 
-  function salvarPerfilHandler(e) {
+  async function salvarPerfilHandler(e) {
     e.preventDefault();
     const u = Storage.usuarioAtual();
     if (!u) return;
@@ -295,25 +396,25 @@
       metaCaloriaDiaria: kcal,
       dataInicio: dataInicio,
     };
-    Storage.salvarPerfil(u, perfil);
+    await Storage.salvarPerfil(u, perfil);
     fecharModalPerfil();
     renderMetaDiaria(u);
   }
 
   // ----- Navegação / Estado -----
-  function entrarDashboard(usuario) {
+  async function entrarDashboard(usuario) {
     dashUser.textContent = "👤 " + usuario;
     mostrarVista("dashboard");
-    renderMetaDiaria(usuario);
+    await renderMetaDiaria(usuario);
     // Aplica o tema salvo como preferência do usuário (fora dos dados)
-    const tema = Storage.carregarTema(usuario);
+    const tema = await Storage.carregarTema(usuario);
     aplicarTema(tema === "escuro" ? "escuro" : "claro");
     iniciarRelogio();
     preencherSeletorMesAno();
     renderCalendario();
     // Primeiro login (ou perfil incompleto): abre a janela de preenchimento
-    if (!Storage.carregarPerfil(usuario)) {
-      abrirModalPerfil(usuario);
+    if (!(await Storage.carregarPerfil(usuario))) {
+      await abrirModalPerfil(usuario);
     }
   }
 
@@ -321,24 +422,24 @@
   tabLogin.addEventListener("click", () => abas("login"));
   tabCadastro.addEventListener("click", () => abas("cadastro"));
 
-  formLogin.addEventListener("submit", (e) => {
+  formLogin.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const r = Storage.entrar(document.getElementById("login-user").value, document.getElementById("login-pass").value);
-    if (r.ok) { setMsg("Bem-vindo(a), " + r.usuario + "!", "ok"); entrarDashboard(r.usuario); }
+    const r = await Storage.entrar(document.getElementById("login-user").value, document.getElementById("login-pass").value);
+    if (r.ok) { setMsg("Bem-vindo(a), " + r.usuario + "!", "ok"); await entrarDashboard(r.usuario); }
     else setMsg(r.erro, "erro");
   });
 
-  formCadastro.addEventListener("submit", (e) => {
+  formCadastro.addEventListener("submit", async (e) => {
     e.preventDefault();
     const u = document.getElementById("cad-user").value;
     const s1 = document.getElementById("cad-pass").value;
     const s2 = document.getElementById("cad-pass2").value;
     if (s1 !== s2) { setMsg("As senhas não coincidem.", "erro"); return; }
-    const r = Storage.registrar(u, s1);
+    const r = await Storage.registrar(u, s1);
     if (r.ok) {
       setMsg("Conta criada! Você já está logado.", "ok");
-      Storage.entrar(r.usuario, s1);
-      entrarDashboard(r.usuario);
+      await Storage.entrar(r.usuario, s1);
+      await entrarDashboard(r.usuario);
     } else {
       setMsg(r.erro, "erro");
     }
@@ -349,13 +450,13 @@
     e.stopPropagation();
     alternarMenuUsuario();
   });
-  btnMeusDados.addEventListener("click", () => {
+  btnMeusDados.addEventListener("click", async () => {
     const u = Storage.usuarioAtual();
-    if (u) abrirModalPerfil(u);
+    if (u) await abrirModalPerfil(u);
   });
-  btnSair.addEventListener("click", () => {
+  btnSair.addEventListener("click", async () => {
     fecharMenuUsuario();
-    Storage.sair();
+    await Storage.sair();
     mostrarVista("auth");
     abas("login");
   });
@@ -368,16 +469,16 @@
   perfPeso.addEventListener("input", atualizarImcDisplay);
   perfAltura.addEventListener("input", atualizarImcDisplay);
   // Alternar tema claro/escuro (opção do usuário, fora dos dados)
-  btnTema.addEventListener("click", () => {
+  btnTema.addEventListener("click", async () => {
     const u = Storage.usuarioAtual();
     const atual = document.documentElement.getAttribute("data-theme") === "dark" ? "escuro" : "claro";
     const novo = atual === "escuro" ? "claro" : "escuro";
     aplicarTema(novo);
-    if (u) Storage.salvarTema(u, novo);
+    if (u) await Storage.salvarTema(u, novo);
   });
   // Clica fora do modal fecha (somente se o perfil já existir, p/ não travar 1º login)
-  modalPerfil.addEventListener("click", (e) => {
-    if (e.target === modalPerfil && Storage.carregarPerfil(Storage.usuarioAtual())) {
+  modalPerfil.addEventListener("click", async (e) => {
+    if (e.target === modalPerfil && await Storage.carregarPerfil(Storage.usuarioAtual())) {
       fecharModalPerfil();
     }
   });
@@ -392,24 +493,49 @@
   btnMesAnterior.addEventListener("click", () => moverMes(-1));
   btnMesSeguinte.addEventListener("click", () => moverMes(1));
 
-  // Botão "Refeições" ao lado do dia atual
+  // Refeições — painel lateral e formulário dinâmico
   calEl.addEventListener("click", (e) => {
-    if (!e.target.classList.contains("btn-refeicoes")) return;
-    const hoje = new Date();
-    alert("Refeições de " + hoje.getDate() + " de " + MESES[calMes] + " de " + calAno +
-      "\n(aqui entrará a lista de refeições do dia)");
+    const botao = e.target.closest(".btn-refeicoes");
+    if (botao) mostrarPainelRefeicoes(botao.dataset.data);
   });
+  gruposRefeicao.addEventListener("click", (e) => {
+    const botao = e.target.closest(".grupo-refeicao");
+    if (botao) abrirGrupoRefeicao(botao.dataset.grupo);
+  });
+  refeicaoFormulario.addEventListener("click", (e) => {
+    if (e.target.closest(".btn-voltar-grupos")) {
+      mostrarPainelRefeicoes(dataRefeicaoAberta);
+      return;
+    }
+    if (e.target.closest(".btn-adicionar-item")) {
+      adicionarLinhaRefeicao();
+      return;
+    }
+    const remover = e.target.closest(".btn-remover-item");
+    if (remover) {
+      const linhas = refeicaoFormulario.querySelectorAll(".item-refeicao-form");
+      if (linhas.length > 1) remover.closest(".item-refeicao-form").remove();
+      return;
+    }
+    if (e.target.closest(".btn-calcular-refeicao")) calcularGrupoRefeicao();
+  });
+  btnFecharRefeicoes.addEventListener("click", fecharPainelRefeicoes);
 
   // Tempo real
   // (formulário de cálculo removido nesta versão — tela principal agora é o calendário)
 
   // ----- Inicialização -----
-  function iniciar() {
+  async function iniciar() {
     abas("login");
-    const atual = Storage.usuarioAtual();
-    if (atual) entrarDashboard(atual);
-    else mostrarVista("auth");
-    carregarBase();
+    try {
+      const atual = await Storage.inicializar();
+      await carregarBase();
+      if (atual) await entrarDashboard(atual);
+      else mostrarVista("auth");
+    } catch (e) {
+      mostrarVista("auth");
+      setMsg(e.message, "erro");
+    }
   }
 
   window.Callbolometro = { renderCalendario: renderCalendario, carregarBase: carregarBase };

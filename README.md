@@ -1,8 +1,8 @@
 # 🍽️ Callbolômetro — Calculadora de Calorias
 
 Sistema **100% gratuito** de cálculo de calorias por **medidas caseiras**, com
-cadastro/login e histórico isolado por usuário. Roda **diretamente no navegador**,
-sem servidor e sem custo — e está pronto para **deploy futuro na Vercel**.
+cadastro/login e histórico isolado por usuário. Os dados ficam no banco SQLite
+do servidor, e não no navegador.
 
 ---
 
@@ -11,9 +11,13 @@ sem servidor e sem custo — e está pronto para **deploy futuro na Vercel**.
 1. Abra a pasta do projeto:
    `C:\Users\rafael.figueiredo\Videos\calculo de caltorias`
 2. Dê **dois cliques** em **`iniciar.bat`**.
-3. O sistema abre sozinho no seu navegador padrão.
+3. O sistema abre sozinho em `http://127.0.0.1:8000` no seu navegador padrão.
 
-> Alternativa: abra o arquivo `index.html` manualmente no navegador.
+O script inicia a API e o banco SQLite local. Deixe a janela preta aberta enquanto estiver usando o sistema. O banco será criado como `calbolometro.db` na pasta do projeto.
+
+Para abrir em outro computador da mesma rede, use no navegador o endereço `http://IP-DESTE-COMPUTADOR:8000`. O computador servidor precisa continuar ligado e a porta 8000 precisa estar liberada no firewall. Para acesso pela internet, será necessário publicar este servidor em uma hospedagem.
+
+> Alternativa: abra o arquivo `index.html` manualmente no navegador, caso o Python não esteja instalado.
 
 ---
 
@@ -26,7 +30,7 @@ sem servidor e sem custo — e está pronto para **deploy futuro na Vercel**.
    - **Alimento:** `arroz`
 3. Aparece em tempo real:
    > 🔥 **2 colheres grandes de arroz branco cozido = 80g = 104 kcal**
-4. Clique em **Salvar no histórico**. A refeição fica registrada só para a sua conta.
+4. Clique em **Calcular refeição**. A refeição fica registrada no banco do servidor, associada à sua conta.
 
 ---
 
@@ -40,7 +44,7 @@ calculo de caltorias/
 │   └── style.css         # visual limpo e responsivo
 ├── js/
 │   ├── motor.js          # motor de cálculo (regra de três, sinônimos, plurais)
-│   ├── storage.js        # cadastro/login + histórico por usuário (localStorage)
+│   ├── storage.js        # cliente da API de cadastro/login e histórico
 │   └── app.js            # lógica de interface e eventos
 ├── data/
 │   └── alimentos.json    # medidas caseiras + alimentos (TACO simplificada)

@@ -59,6 +59,11 @@ window.ALIMENTOS_BASE = {
         "ovos cozido"
       ],
       "kcal_por_100g": 146
+    },
+    {
+      "nome": "Pão de forma integral",
+      "sinonimos": ["pao integral", "pão integral", "pão de forma", "pao de forma integral", "pão de forma integral"],
+      "kcal_por_100g": 250
     }
   ]
 };

@@ -1,190 +1,79 @@
-/**
- * Callbolômetro — Armazenamento local (localStorage)
- *
- * Sistema de Cadastro/Login simples e histórico **isolado por usuário**.
- * Cada usuário só enxerga o próprio histórico de refeições.
- * Sem custo algum: tudo fica gravado no navegador.
- *
- * ATENÇÃO (demo local): em produção/na internet, troque por autenticação
- * real (ex.: Supabase/Auth) e um banco de dados. Aqui o foco é simplicidade
- * e funcionamento 100% offline e gratuito.
- */
-
+/* Persistencia via API do servidor e banco SQLite. */
 const Storage = (() => {
   "use strict";
 
-  const KEY_USERS = "callbolota_users";
-  const KEY_SESSAO = "callbolota_sessao";
+  let usuarioLogado = null;
 
-  function lerUsers() {
+  async function requisicao(url, opcoes) {
+    const resposta = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opcoes || {}));
+    const dados = await resposta.json();
+    if (!resposta.ok) throw new Error(dados.erro || "Nao foi possivel acessar o servidor.");
+    return dados;
+  }
+
+  async function inicializar() {
     try {
-      const raw = localStorage.getItem(KEY_USERS);
-      return raw ? JSON.parse(raw) : [];
+      await migrarDadosAntigos();
+      const dados = await requisicao("/api/session");
+      usuarioLogado = dados.usuario || null;
     } catch (e) {
-      return [];
+      usuarioLogado = null;
+      throw new Error("Servidor indisponivel. Abra o sistema pelo iniciar.bat.");
+    }
+    return usuarioLogado;
+  }
+
+  async function migrarDadosAntigos() {
+    const usuarios = JSON.parse(localStorage.getItem("callbolota_users") || "[]");
+    if (!usuarios.length) return;
+    const perfis = {};
+    const historicos = {};
+    usuarios.forEach((item) => {
+      const nome = item.usuario;
+      try { perfis[nome] = JSON.parse(localStorage.getItem("callbolota_perfil_" + nome.replace(/[^a-zA-Z0-9_.-]/g, "_")) || "null"); } catch (e) { perfis[nome] = null; }
+      try { historicos[nome] = JSON.parse(localStorage.getItem("callbolota_hist_'" + nome.replace(/[^a-zA-Z0-9_.-]/g, "_")) || "[]"); } catch (e) { historicos[nome] = []; }
+    });
+    const resposta = await requisicao("/api/import-legacy", { method: "POST", body: JSON.stringify({ users: usuarios, perfis, historicos }) });
+    if (resposta.ok) {
+      localStorage.removeItem("callbolota_users");
+      localStorage.removeItem("callbolota_sessao");
+      usuarios.forEach((item) => {
+        const nome = item.usuario.replace(/[^a-zA-Z0-9_.-]/g, "_");
+        localStorage.removeItem("callbolota_perfil_" + nome);
+        localStorage.removeItem("callbolota_hist_'" + nome);
+      });
     }
   }
 
-  function salvarUsers(lista) {
-    localStorage.setItem(KEY_USERS, JSON.stringify(lista));
+  async function registrar(usuario, senha) {
+    try { return await requisicao("/api/register", { method: "POST", body: JSON.stringify({ usuario, senha }) }); }
+    catch (e) { return { ok: false, erro: e.message }; }
   }
 
-  function chaveHistorico(usuario) {
-    return "callbolota_hist_'"
-      + String(usuario).replace(/[^a-zA-Z0-9_.-]/g, "_");
-  }
-
-  function chavePerfil(usuario) {
-    return "callbolota_perfil_"
-      + String(usuario).replace(/[^a-zA-Z0-9_.-]/g, "_");
-  }
-
-  /** Retorna os dados do usuário (inclui criadoEm) ou null. */
-  function usuarioInfo(usuario) {
-    const u = String(usuario || "").trim();
-    if (!u) return null;
-    const users = lerUsers();
-    return users.find((x) => x.usuario === u) || null;
-  }
-
-  /** Retorna o perfil de um usuário ou null (primeiro login ainda). */
-  function carregarPerfil(usuario) {
-    if (!usuario) return null;
+  async function entrar(usuario, senha) {
     try {
-      return JSON.parse(localStorage.getItem(chavePerfil(usuario)) || "null");
-    } catch (e) {
-      return null;
-    }
+      const dados = await requisicao("/api/login", { method: "POST", body: JSON.stringify({ usuario, senha }) });
+      usuarioLogado = dados.usuario;
+      return dados;
+    } catch (e) { return { ok: false, erro: e.message }; }
   }
 
-  /** Salva/atualiza o perfil do usuário. */
-  function salvarPerfil(usuario, perfil) {
-    if (!usuario) return null;
-    const novo = Object.assign(
-      { atualizadoEm: new Date().toISOString() },
-      perfil || {}
-    );
-    localStorage.setItem(chavePerfil(usuario), JSON.stringify(novo));
-    return novo;
+  async function sair() {
+    try { await requisicao("/api/logout", { method: "POST", body: "{}" }); }
+    finally { usuarioLogado = null; }
   }
 
-  /** Cadastra novo usuário. Retorna {ok, erro} */
-  function registrar(usuario, senha) {
-    const u = String(usuario || "").trim();
-    if (!u || String(senha || "").length < 4) {
-      return { ok: false, erro: "Informe um usuário e uma senha com pelo menos 4 caracteres." };
-    }
-    const users = lerUsers();
-    if (users.some((x) => x.usuario.toLowerCase() === u.toLowerCase())) {
-      return { ok: false, erro: "Este usuário já está cadastrado." };
-    }
-    users.push({ usuario: u, senha: String(senha), criadoEm: new Date().toISOString() });
-    salvarUsers(users);
-    return { ok: true, usuario: u };
-  }
+  function usuarioAtual() { return usuarioLogado; }
+  async function usuarioInfo(usuario) { return usuario ? { usuario, criadoEm: new Date().toISOString() } : null; }
+  async function carregarPerfil() { return (await requisicao("/api/profile")).perfil; }
+  async function salvarPerfil(usuario, perfil) { return (await requisicao("/api/profile", { method: "PUT", body: JSON.stringify({ perfil }) })).perfil; }
+  async function carregarTema() { return (await requisicao("/api/theme")).tema; }
+  async function salvarTema(usuario, tema) { return requisicao("/api/theme", { method: "PUT", body: JSON.stringify({ tema }) }); }
+  async function salvarRefeicao(usuario, refeicao) { return requisicao("/api/meals", { method: "POST", body: JSON.stringify(refeicao) }); }
+  async function removerRefeicao(usuario, id) { return requisicao("/api/meals?id=" + encodeURIComponent(id), { method: "DELETE" }); }
+  async function listarHistorico() { return (await requisicao("/api/meals")).refeicoes || []; }
 
-  /** Faz login. Retorna {ok, erro} */
-  function entrar(usuario, senha) {
-    const u = String(usuario || "").trim();
-    const users = lerUsers();
-    const found = users.find((x) => x.usuario.toLowerCase() === u.toLowerCase());
-    if (!found || found.senha !== String(senha)) {
-      return { ok: false, erro: "Usuário ou senha inválidos." };
-    }
-    localStorage.setItem(KEY_SESSAO, found.usuario);
-    return { ok: true, usuario: found.usuario };
-  }
-
-  function sair() {
-    localStorage.removeItem(KEY_SESSAO);
-  }
-
-  /** Retorna o usuário atualmente logado ou null. */
-  function usuarioAtual() {
-    const s = localStorage.getItem(KEY_SESSAO);
-    if (!s) return null;
-    const users = lerUsers();
-    return users.find((x) => x.usuario === s) ? s : null;
-  }
-
-  /** Adiciona uma refeição ao histórico do usuário logado. */
-  function salvarRefeicao(usuario, refeicao) {
-    if (!usuario) return null;
-    const k = chaveHistorico(usuario);
-    let hist = [];
-    try {
-      hist = JSON.parse(localStorage.getItem(k) || "[]");
-    } catch (e) {
-      hist = [];
-    }
-    const item = Object.assign(
-      { id: Date.now() + "-" + Math.random().toString(36).slice(2, 8), data: new Date().toISOString() },
-      refeicao
-    );
-    hist.push(item);
-    localStorage.setItem(k, JSON.stringify(hist));
-    return item;
-  }
-
-  /** Remove uma refeição do histórico do usuário. */
-  function removerRefeicao(usuario, id) {
-    if (!usuario) return;
-    const k = chaveHistorico(usuario);
-    let hist = [];
-    try {
-      hist = JSON.parse(localStorage.getItem(k) || "[]");
-    } catch (e) {
-      hist = [];
-    }
-    hist = hist.filter((x) => x.id !== id);
-    localStorage.setItem(k, JSON.stringify(hist));
-  }
-
-  /** Lista (mais recente primeiro) o histórico do usuário. */
-  function listarHistorico(usuario) {
-    if (!usuario) return [];
-    try {
-      const hist = JSON.parse(localStorage.getItem(chaveHistorico(usuario)) || "[]");
-      return hist.sort((a, b) => new Date(b.data) - new Date(a.data));
-    } catch (e) {
-      return [];
-    }
-  }
-
-  function chaveTema(usuario) {
-    return "callbolota_tema_"
-      + String(usuario).replace(/[^a-zA-Z0-9_.-]/g, "_");
-  }
-
-  /** Retorna o tema do usuário ("claro"|"escuro") ou null. */
-  function carregarTema(usuario) {
-    if (!usuario) return null;
-    const v = localStorage.getItem(chaveTema(usuario));
-    return v === "escuro" || v === "dark" ? "escuro" : (v ? "claro" : null);
-  }
-
-  /** Salva a preferência de tema do usuário. */
-  function salvarTema(usuario, tema) {
-    if (!usuario) return;
-    localStorage.setItem(chaveTema(usuario), tema === "escuro" ? "escuro" : "claro");
-  }
-
-  return {
-    registrar: registrar,
-    entrar: entrar,
-    sair: sair,
-    usuarioAtual: usuarioAtual,
-    usuarioInfo: usuarioInfo,
-    carregarPerfil: carregarPerfil,
-    salvarPerfil: salvarPerfil,
-    carregarTema: carregarTema,
-    salvarTema: salvarTema,
-    salvarRefeicao: salvarRefeicao,
-    removerRefeicao: removerRefeicao,
-    listarHistorico: listarHistorico,
-  };
+  return { inicializar, registrar, entrar, sair, usuarioAtual, usuarioInfo, carregarPerfil, salvarPerfil, carregarTema, salvarTema, salvarRefeicao, removerRefeicao, listarHistorico };
 })();
 
-if (typeof window !== "undefined") {
-  window.Storage = Storage;
-}
+if (typeof window !== "undefined") window.Storage = Storage;

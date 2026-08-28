@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Callbolômetro — Calculadora de Calorias</title>
-  <link rel="stylesheet" href="css/style.css?v=9" />
+  <link rel="stylesheet" href="css/style.css?v=11" />
 </head>
 <body>
   <!-- ============ TELA DE LOGIN / CADASTRO ============ -->
@@ -79,7 +79,6 @@
     <div class="dashboard-cal">
       <!-- Calendário do mês/ano selecionado -->
       <section class="card cal-card">
-        <h2>Calendário</h2>
         <div class="cal-topo">
           <button type="button" id="mes-anterior" class="btn-nav" title="Mês anterior">◀</button>
           <select id="sel-mesano" class="sel-mesano" title="Selecionar mês e ano"></select>
@@ -87,6 +86,20 @@
         </div>
         <div id="calendario" class="calendario"></div>
       </section>
+
+      <!-- Painel de refeições do dia, sobreposto ao lado do calendário -->
+      <aside id="painel-refeicoes" class="card painel-refeicoes hidden" aria-labelledby="refeicoes-titulo">
+        <div class="painel-refeicoes-topo">
+          <div>
+            <p class="painel-kicker">Planejamento do dia</p>
+            <h2 id="refeicoes-titulo">Refeições</h2>
+            <p id="refeicoes-data" class="painel-data"></p>
+          </div>
+          <button type="button" id="btn-fechar-refeicoes" class="btn-fechar" title="Fechar refeições" aria-label="Fechar refeições">×</button>
+        </div>
+        <div id="grupos-refeicao" class="grupos-refeicao"></div>
+        <div id="refeicao-formulario" class="refeicao-formulario hidden"></div>
+      </aside>
     </div>
   </main>
 
@@ -131,10 +144,10 @@
     </div>
   </div>
 
-  <script src="js/motor.js?v=9"></script>
-  <script src="js/storage.js?v=9"></script>
+  <script src="js/motor.js?v=11"></script>
+  <script src="js/storage.js?v=12"></script>
   <!-- dados.js contém a base embutida p/ funcionar offline (file://) -->
-  <script src="js/dados.js?v=1"></script>
-  <script src="js/app.js?v=9"></script>
+  <script src="js/dados.js?v=2"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>
