@@ -141,12 +141,12 @@ input[type="date"] { color-scheme: light dark; }
 
 /* ===== Calendário (tela principal) ===== */
 .dashboard-cal {
-  position: relative; width: 100%; max-width: none; min-height: calc(100vh - 100px); margin: 0; padding: 24px 16px;
+  position: relative; width: 100%; max-width: none; min-height: calc(100vh - 88px); margin: 0 auto; padding: 24px;
   display: flex; justify-content: center;
 }
-.cal-card { display: flex; flex-direction: column; width: 100%; max-width: none; min-height: calc(100vh - 148px); } /* ocupa a tela toda */
+.cal-card { display: flex; flex-direction: column; width: 100%; max-width: none; min-height: calc(100vh - 136px); }
 .cal-topo {
-  display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px;
 }
 .btn-nav {
   background: var(--superficie-2); border: 1px solid var(--borda); border-radius: 10px;
@@ -161,22 +161,22 @@ input[type="date"] { color-scheme: light dark; }
 .cal-cabecalho, .cal-grid {
   display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px;
 }
-.calendario { display: flex; flex: 1; flex-direction: column; }
-.cal-grid { width: 100%; flex: 1; grid-auto-rows: minmax(76px, 1fr); align-content: stretch; }
+.calendario { display: block; }
+.cal-grid { width: 100%; grid-auto-rows: auto; align-content: normal; }
 .cal-cabecalho { margin-bottom: 6px; }
 .cal-dow {
   text-align: center; font-size: 12px; font-weight: 700; text-transform: uppercase;
   color: var(--cinza); padding: 4px 0;
 }
 .cal-grid > .cal-dia {
-  position: relative; min-height: 56px; border: 1px solid #b8c5d3 !important; border-radius: 10px;
+  position: relative; min-height: clamp(72px, 12vh, 132px); border: 1px solid #b8c5d3 !important; border-radius: 10px;
   background: var(--superficie-2) !important; padding: 4px; display: flex; flex-direction: column;
   align-items: center; gap: 2px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .03);
 }
 .dark .cal-grid > .cal-dia,
 [data-theme="dark"] .cal-grid > .cal-dia { border-color: #3b506d !important; background: #1d2a40 !important; }
 .cal-grid > .cal-dia.hoje { border-color: var(--verde) !important; background: var(--verde-claro) !important; }
-.cal-grid > .cal-vazio { min-height: 76px; }
+.cal-grid > .cal-vazio { min-height: clamp(72px, 12vh, 132px); }
 .cal-num { font-size: 14px; font-weight: 600; color: var(--texto); }
 .cal-dia.hoje { border-color: var(--verde); background: var(--verde-claro); }
 .cal-dia.hoje .cal-num { color: var(--verde-escuro); font-weight: 800; }
@@ -256,7 +256,7 @@ input[type="date"] { color-scheme: light dark; }
 .total-refeicao { border-top: 1px solid var(--verde); margin-top: 7px; padding-top: 8px; color: var(--verde-escuro); font-size: 15px; font-weight: 800; text-align: right; }
 @media (max-width: 900px) {
   .cal-card { max-width: 100%; }
-  .cal-dia { min-height: 48px; }
+  .cal-dia { min-height: 64px; }
   .relogio { font-size: 11px; padding: 6px 10px; }
   .painel-refeicoes { top: 0; right: 12px; width: calc(100% - 24px); max-height: calc(100vh - 32px); }
 }
