@@ -227,6 +227,13 @@
     refeicoesData.textContent = textoData(data);
     refeicaoFormulario.classList.add("hidden");
     refeicaoFormulario.innerHTML = "";
+    gruposRefeicao.innerHTML = GRUPOS_REFEICAO.map((grupo) =>
+      '<div class="grupo-refeicao-bloco">' +
+      '<button type="button" class="grupo-refeicao" data-grupo="' + esc(grupo) + '">' +
+      '<span>' + esc(grupo) + '</span><span class="grupo-seta">›</span></button>' +
+      '<div class="grupo-refeicao-conteudo hidden" data-grupo-conteudo="' + esc(grupo) + '"></div>' +
+      '</div>'
+    ).join("");
   }
 
   function fecharPainelRefeicoes() {
