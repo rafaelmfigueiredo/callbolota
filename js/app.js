@@ -156,7 +156,7 @@
       const ehHoje = mesmoMes && dia === diaHoje;
       html += '<div class="cal-dia' + (ehHoje ? " hoje" : "") + '">' +
         '<span class="cal-num">' + dia + "</span>" +
-        (ehHoje ? '<button type="button" class="btn-refeicoes" data-data="' + valorData(calAno, calMes, dia) + '" title="Ver refeições do dia" aria-label="Ver refeições do dia">🍽️</button>' : "") +
+        (ehHoje ? '<button type="button" class="btn-refeicoes" data-data="' + valorData(calAno, calMes, dia) + '" title="Ver refeições do dia" aria-label="Ver refeições do dia">🔖</button>' : "") +
         "</div>";
     }
     html += "</div>";
@@ -194,8 +194,8 @@
     refeicaoFormulario.classList.add("hidden");
     refeicaoFormulario.innerHTML = "";
     gruposRefeicao.innerHTML = GRUPOS_REFEICAO.map((grupo) =>
-      '<button type="button" class="grupo-refeicao" data-grupo="' + esc(grupo) + '">' +
-      '<span>' + esc(grupo) + '</span><span class="grupo-seta">›</span></button>'
+      '<div class="grupo-refeicao-bloco"><button type="button" class="grupo-refeicao" data-grupo="' + esc(grupo) + '">' +
+      '<span>' + esc(grupo) + '</span><span class="grupo-seta">›</span></button><div class="grupo-refeicao-conteudo" data-grupo-conteudo="' + esc(grupo) + '"></div></div>'
     ).join("");
   }
 
@@ -206,6 +206,14 @@
 
   function abrirGrupoRefeicao(grupo) {
     grupoRefeicaoAberto = grupo;
+    gruposRefeicao.querySelectorAll(".grupo-refeicao-conteudo").forEach((conteudo) => {
+      conteudo.classList.add("hidden");
+      conteudo.innerHTML = "";
+    });
+    const conteudo = gruposRefeicao.querySelector('[data-grupo-conteudo="' + grupo.replace(/"/g, '&quot;') + '"]');
+    if (!conteudo) return;
+    conteudo.classList.remove("hidden");
+    conteudo.appendChild(refeicaoFormulario);
     refeicaoFormulario.classList.remove("hidden");
     refeicaoFormulario.innerHTML =
       '<div class="formulario-topo"><h3>' + esc(grupo) + '</h3>' +
