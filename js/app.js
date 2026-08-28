@@ -278,11 +278,8 @@
       const calculado = Motor.calcular(BASE, quantidade, unidade, alimento);
       const item = { alimento: calculado.alimento.nome, alimentoBusca: alimento, quantidade: calculado.quantidade, unidade: calculado.unidadeDigita, kcal: calculado.kcal };
       itensGrupoConfirmados.push(item);
-      linha.replaceWith(document.createElement("div"));
-      const lista = refeicaoFormulario.querySelector(".itens-refeicao");
-      lista.lastElementChild.remove();
-      adicionarLinhaRefeicao(item);
-      adicionarLinhaRefeicao();
+      linha.remove();
+      adicionarLinhaRefeicao(item, itensGrupoConfirmados.length - 1);
       atualizarTotalGrupo();
       await salvarGrupoRefeicao();
     } catch (e) {
