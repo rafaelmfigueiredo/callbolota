@@ -176,6 +176,7 @@
   const GRUPOS_REFEICAO = ["Café da Manhã", "Lanche da Manhã", "Almoço", "Lanche da tarde", "Janta", "Lanche Noite"];
   let dataRefeicaoAberta = null;
   let grupoRefeicaoAberto = null;
+  let itensGrupoConfirmados = [];
 
   function valorData(ano, mes, dia) {
     return ano + "-" + dois(mes + 1) + "-" + dois(dia);
@@ -204,7 +205,7 @@
     grupoRefeicaoAberto = null;
   }
 
-  function abrirGrupoRefeicao(grupo) {
+  async function abrirGrupoRefeicao(grupo) {
     grupoRefeicaoAberto = grupo;
     gruposRefeicao.querySelectorAll(".grupo-refeicao-conteudo").forEach((conteudo) => {
       conteudo.classList.add("hidden");
@@ -215,28 +216,86 @@
     conteudo.classList.remove("hidden");
     conteudo.appendChild(refeicaoFormulario);
     refeicaoFormulario.classList.remove("hidden");
+    itensGrupoConfirmados = [];
+    try {
+      const historico = await Storage.listarHistorico();
+      const salvo = historico.find((item) => item.dataLocal === dataRefeicaoAberta && item.grupo === grupo);
+      itensGrupoConfirmados = salvo && Array.isArray(salvo.itens) ? salvo.itens : [];
+    } catch (e) {
+      itensGrupoConfirmados = [];
+    }
     refeicaoFormulario.innerHTML =
       '<div class="formulario-topo"><h3>' + esc(grupo) + '</h3>' +
       '<button type="button" class="btn-voltar-grupos">Todos os grupos</button></div>' +
       '<div class="itens-refeicao"></div>' +
       '<button type="button" class="btn-adicionar-item" title="Adicionar outro alimento">+ Adicionar alimento</button>' +
-      '<button type="button" class="btn primary btn-calcular-refeicao">Calcular refeição</button>' +
       '<div class="resultado-refeicao" aria-live="polite"></div>';
+    itensGrupoConfirmados.forEach((item, indice) => adicionarLinhaRefeicao(item, indice));
     adicionarLinhaRefeicao();
   }
 
-  function adicionarLinhaRefeicao() {
+  function adicionarLinhaRefeicao(item, indice) {
     const lista = refeicaoFormulario.querySelector(".itens-refeicao");
     const linha = document.createElement("div");
     linha.className = "item-refeicao-form";
+    if (item) { linha.classList.add("item-confirmado"); linha.dataset.itemIndex = indice; }
     linha.innerHTML =
-      '<label>Alimento<input type="text" class="campo-alimento" placeholder="ex.: arroz" autocomplete="off"></label>' +
-      '<label>Quantidade<input type="number" class="campo-quantidade" min="0.01" step="0.01" placeholder="ex.: 2"></label>' +
-      '<label>Medida<select class="campo-unidade">' + Object.keys(BASE && BASE.medidas_caseiras || {}).map((medida) =>
-        '<option value="' + esc(medida) + '">' + esc(medida) + '</option>').join("") + '</select></label>' +
-      '<button type="button" class="btn-remover-item" title="Remover alimento" aria-label="Remover alimento">×</button>';
+      '<label>Alimento<input type="text" class="campo-alimento" placeholder="ex.: arroz" autocomplete="off" value="' + (item ? esc(item.alimentoBusca || item.alimento || "") : "") + '"' + (item ? " readonly" : "") + '></label>' +
+      '<label>Quantidade<input type="number" class="campo-quantidade" min="0.01" step="0.01" placeholder="ex.: 2" value="' + (item ? esc(item.quantidade) : "") + '"' + (item ? " readonly" : "") + '></label>' +
+      '<label>Medida<select class="campo-unidade"' + (item ? " disabled" : "") + '>' + Object.keys(BASE && BASE.medidas_caseiras || {}).map((medida) =>
+        '<option value="' + esc(medida) + '"' + (item && item.unidade === medida ? " selected" : "") + '>' + esc(medida) + '</option>').join("") + '</select></label>' +
+      (item ? '<span class="kcal-item">' + nro(item.kcal) + ' kcal</span>' : '<button type="button" class="btn-confirmar-item" title="Confirmar alimento" aria-label="Confirmar alimento">✓</button>') +
+      '<button type="button" class="btn-remover-item" title="Excluir alimento" aria-label="Excluir alimento">×</button>';
     lista.appendChild(linha);
-    linha.querySelector(".campo-alimento").focus();
+    if (!item) linha.querySelector(".campo-alimento").focus();
+  }
+
+  function idGrupoRefeicao() {
+    return "grupo-" + dataRefeicaoAberta + "-" + Motor.normalizar(grupoRefeicaoAberto).replace(/[^a-z0-9]+/g, "-");
+  }
+
+  async function salvarGrupoRefeicao() {
+    const total = itensGrupoConfirmados.reduce((soma, item) => soma + Number(item.kcal || 0), 0);
+    const usuario = Storage.usuarioAtual();
+    if (!usuario) return;
+    if (!itensGrupoConfirmados.length) {
+      await Storage.removerRefeicao(usuario, idGrupoRefeicao());
+      return;
+    }
+    await Storage.salvarRefeicao(usuario, {
+      id: idGrupoRefeicao(), dataLocal: dataRefeicaoAberta, data: dataRefeicaoAberta + "T12:00:00",
+      grupo: grupoRefeicaoAberto, itens: itensGrupoConfirmados, totalKcal: total,
+    });
+  }
+
+  async function confirmarLinhaRefeicao(linha) {
+    if (!BASE) return;
+    const alimento = linha.querySelector(".campo-alimento").value.trim();
+    const quantidade = linha.querySelector(".campo-quantidade").value;
+    const unidade = linha.querySelector(".campo-unidade").value;
+    try {
+      if (!alimento) throw new Error("Informe o alimento.");
+      const calculado = Motor.calcular(BASE, quantidade, unidade, alimento);
+      const item = { alimento: calculado.alimento.nome, alimentoBusca: alimento, quantidade: calculado.quantidade, unidade: calculado.unidadeDigita, kcal: calculado.kcal };
+      itensGrupoConfirmados.push(item);
+      linha.replaceWith(document.createElement("div"));
+      const lista = refeicaoFormulario.querySelector(".itens-refeicao");
+      lista.lastElementChild.remove();
+      adicionarLinhaRefeicao(item);
+      adicionarLinhaRefeicao();
+      atualizarTotalGrupo();
+      await salvarGrupoRefeicao();
+    } catch (e) {
+      linha.classList.add("linha-erro");
+      linha.title = e.message;
+    }
+  }
+
+  function atualizarTotalGrupo() {
+    const total = itensGrupoConfirmados.reduce((soma, item) => soma + Number(item.kcal || 0), 0);
+    const resultado = refeicaoFormulario.querySelector(".resultado-refeicao");
+    resultado.className = "resultado-refeicao ok";
+    resultado.innerHTML = '<div class="total-refeicao">Total: ' + nro(total) + ' kcal</div>';
   }
 
   function calcularGrupoRefeicao() {
@@ -519,13 +578,24 @@
       adicionarLinhaRefeicao();
       return;
     }
-    const remover = e.target.closest(".btn-remover-item");
-    if (remover) {
-      const linhas = refeicaoFormulario.querySelectorAll(".item-refeicao-form");
-      if (linhas.length > 1) remover.closest(".item-refeicao-form").remove();
+    const confirmar = e.target.closest(".btn-confirmar-item");
+    if (confirmar) {
+      confirmarLinhaRefeicao(confirmar.closest(".item-refeicao-form"));
       return;
     }
-    if (e.target.closest(".btn-calcular-refeicao")) calcularGrupoRefeicao();
+    const remover = e.target.closest(".btn-remover-item");
+    if (remover) {
+      const linha = remover.closest(".item-refeicao-form");
+      if (linha.classList.contains("item-confirmado")) {
+        itensGrupoConfirmados.splice(Number(linha.dataset.itemIndex), 1);
+        linha.remove();
+        atualizarTotalGrupo();
+        salvarGrupoRefeicao().catch(() => {});
+      } else if (refeicaoFormulario.querySelectorAll(".item-refeicao-form").length > 1) {
+        linha.remove();
+      }
+      return;
+    }
   });
   btnFecharRefeicoes.addEventListener("click", fecharPainelRefeicoes);
 

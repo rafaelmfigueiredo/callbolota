@@ -177,7 +177,7 @@ input[type="date"] { color-scheme: light dark; }
 .btn-refeicoes {
   position: absolute; z-index: 2; top: 4px; right: 4px;
   border: 1px solid var(--laranja); border-radius: 999px; background: var(--laranja); color: #fff;
-  width: 28px; height: 28px; font-size: 14px; font-weight: 700; line-height: 1; padding: 0; cursor: pointer; white-space: nowrap;
+  width: 24px; height: 24px; font-size: 13px; font-weight: 700; line-height: 1; padding: 0; cursor: pointer; white-space: nowrap;
   box-shadow: 0 2px 5px rgba(0, 0, 0, .12); transition: .15s;
 }
 .btn-refeicoes:hover { filter: brightness(.92); }
@@ -187,9 +187,9 @@ input[type="date"] { color-scheme: light dark; }
 .painel-refeicoes {
   position: absolute; z-index: 10; top: 0; right: 16px; width: min(520px, calc(100% - 32px));
   max-height: calc(100vh - 120px); overflow-y: auto; padding: 20px;
-  opacity: .94; animation: painel-entra .22s ease;
+  background: rgba(255, 255, 255, .72); opacity: .86; animation: painel-entra .22s ease;
 }
-@keyframes painel-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: .94; transform: none; } }
+@keyframes painel-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: .86; transform: none; } }
 .painel-refeicoes-topo, .formulario-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .painel-kicker { color: var(--laranja); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .painel-refeicoes h2 { margin: 0; font-size: 21px; }
@@ -217,6 +217,10 @@ input[type="date"] { color-scheme: light dark; }
 .item-refeicao-form label { min-width: 0; font-size: 11px; }
 .item-refeicao-form input, .item-refeicao-form select { width: 100%; padding: 9px 8px; font-size: 13px; border-radius: 8px; }
 .btn-remover-item { width: 24px; height: 36px; font-size: 20px; }
+.btn-confirmar-item { width: 28px; height: 36px; border: 0; border-radius: 8px; background: var(--verde); color: #fff; font-size: 18px; font-weight: 800; cursor: pointer; }
+.btn-confirmar-item:hover { background: var(--verde-escuro); }
+.kcal-item { display: flex; align-items: center; height: 36px; color: var(--laranja); font-size: 11px; font-weight: 800; white-space: nowrap; }
+.linha-erro input, .linha-erro select { border-color: var(--erro); }
 .btn-adicionar-item { margin: 12px 0; border: 1px dashed var(--verde); border-radius: 8px; padding: 8px; width: 100%; background: var(--verde-claro); color: var(--verde-escuro); font-weight: 700; cursor: pointer; }
 .btn-calcular-refeicao { width: 100%; }
 .resultado-refeicao { margin-top: 12px; padding: 10px; border-radius: 9px; font-size: 13px; }
