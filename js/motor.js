@@ -181,7 +181,7 @@ const Motor = (() => {
    * @throws {Error} descritivo quando medida ou alimento não forem encontrados
    */
   function calcular(base, quantidade, unidade, alimento) {
-    const medidas = base && base.medidas_caseiras ? base.medidas_caseiras : {};
+    const medidasGerais = base && base.medidas_caseiras ? base.medidas_caseiras : {};
     const alimentos = base && base.alimentos ? base.alimentos : [];
 
     const qtd = Number(quantidade);
@@ -194,6 +194,8 @@ const Motor = (() => {
       throw new Error('Alimento "' + alimento + '" não encontrado na base.');
     }
 
+    // Medidas específicas do alimento têm prioridade sobre as medidas gerais.
+    const medidas = Object.assign({}, medidasGerais, al.medidas_caseiras || {});
     const un = encontrarMedida(medidas, unidade);
     const gramasPorUnidade = medidas[un.chave];
     const pesoTotal = qtd * gramasPorUnidade;

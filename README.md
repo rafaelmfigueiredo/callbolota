@@ -65,6 +65,8 @@ kcal       = (peso_total / 100) × kcal_por_100g
    `colher de sopa 25`, `colher grande 40`, `concha 100`, `xicara 150`, `fatia 25`, `grama 1`, `unidade 100`
 - O motor **normaliza plurais** (ex.: `colheres grandes` → `colher grande`,
   `xícaras` → `xicara`) e busca alimentos por **sinônimos** (ex.: `feijao` → `Feijão carioca cozido`).
+- Quando disponível, cada alimento usa seu próprio peso de referência para a medida. Ex.: `1 fatia de pão integral = 25 g` e `1 unidade de ovo = 50 g`.
+- Os valores são referências médias de composição de alimentos; produtos industrializados devem ser conferidos no rótulo, pois marca, receita e tamanho podem alterar o resultado.
 
 **Alimentos na base (TACO simplificada):**
 

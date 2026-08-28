@@ -278,7 +278,7 @@
       '<label>Quantidade<input type="number" class="campo-quantidade" min="0.01" step="0.01" placeholder="ex.: 2" value="' + (item ? esc(item.quantidade) : "") + '"' + (item ? " readonly" : "") + '></label>' +
       '<label>Medida<select class="campo-unidade"' + (item ? " disabled" : "") + '>' + Object.keys(BASE && BASE.medidas_caseiras || {}).map((medida) =>
         '<option value="' + esc(medida) + '"' + (item && item.unidade === medida ? " selected" : "") + '>' + esc(medida) + '</option>').join("") + '</select></label>' +
-      (item ? '<span class="kcal-item">' + nro(item.kcal) + ' kcal</span>' : '<button type="button" class="btn-confirmar-item" title="Confirmar alimento" aria-label="Confirmar alimento">✓</button>') +
+      (item ? '<span class="kcal-item">' + nro(item.kcal) + ' kcal' + (item.pesoTotal ? ' · ' + nro(item.pesoTotal) + ' g' : '') + '</span>' : '<button type="button" class="btn-confirmar-item" title="Confirmar alimento" aria-label="Confirmar alimento">✓</button>') +
       '<button type="button" class="btn-remover-item" title="Excluir alimento" aria-label="Excluir alimento">×</button>';
     lista.appendChild(linha);
     if (!item) linha.querySelector(".campo-alimento").focus();
@@ -312,7 +312,7 @@
     try {
       if (!alimento) throw new Error("Informe o alimento.");
       const calculado = Motor.calcular(BASE, quantidade, unidade, alimento);
-      const item = { alimento: calculado.alimento.nome, alimentoBusca: alimento, quantidade: calculado.quantidade, unidade: calculado.unidadeDigita, kcal: calculado.kcal };
+      const item = { alimento: calculado.alimento.nome, alimentoBusca: alimento, quantidade: calculado.quantidade, unidade: calculado.unidadeDigita, pesoTotal: calculado.pesoTotal, kcal: calculado.kcal };
       itensGrupoConfirmados.push(item);
       linha.remove();
       adicionarLinhaRefeicao(item, itensGrupoConfirmados.length - 1);
