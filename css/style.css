@@ -141,10 +141,10 @@ input[type="date"] { color-scheme: light dark; }
 
 /* ===== Calendário (tela principal) ===== */
 .dashboard-cal {
-  position: relative; width: 100%; max-width: none; margin: 24px 0; padding: 0 16px;
+  position: relative; width: 100%; max-width: none; min-height: calc(100vh - 100px); margin: 0; padding: 24px 16px;
   display: flex; justify-content: center;
 }
-.cal-card { width: 100%; max-width: none; } /* ocupa a tela toda */
+.cal-card { display: flex; flex-direction: column; width: 100%; max-width: none; min-height: calc(100vh - 148px); } /* ocupa a tela toda */
 .cal-topo {
   display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px;
 }
@@ -161,6 +161,8 @@ input[type="date"] { color-scheme: light dark; }
 .cal-cabecalho, .cal-grid {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
 }
+.calendario { display: flex; flex: 1; flex-direction: column; }
+.cal-grid { flex: 1; grid-auto-rows: minmax(56px, 1fr); }
 .cal-cabecalho { margin-bottom: 6px; }
 .cal-dow {
   text-align: center; font-size: 12px; font-weight: 700; text-transform: uppercase;

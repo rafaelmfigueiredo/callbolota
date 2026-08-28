@@ -231,7 +231,7 @@
       '<button type="button" class="btn-adicionar-item" title="Adicionar outro alimento">+ Adicionar alimento</button>' +
       '<div class="resultado-refeicao" aria-live="polite"></div>';
     itensGrupoConfirmados.forEach((item, indice) => adicionarLinhaRefeicao(item, indice));
-    adicionarLinhaRefeicao();
+    atualizarTotalGrupo();
   }
 
   function adicionarLinhaRefeicao(item, indice) {
