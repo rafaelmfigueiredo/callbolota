@@ -159,10 +159,10 @@ input[type="date"] { color-scheme: light dark; }
   background: var(--superficie-2); color: var(--verde-escuro);
 }
 .cal-cabecalho, .cal-grid {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px;
 }
 .calendario { display: flex; flex: 1; flex-direction: column; }
-.cal-grid { flex: 1; grid-auto-rows: minmax(76px, 1fr); align-content: stretch; }
+.cal-grid { width: 100%; flex: 1; grid-auto-rows: minmax(76px, 1fr); align-content: stretch; }
 .cal-cabecalho { margin-bottom: 6px; }
 .cal-dow {
   text-align: center; font-size: 12px; font-weight: 700; text-transform: uppercase;
@@ -176,6 +176,7 @@ input[type="date"] { color-scheme: light dark; }
 .dark .cal-grid > .cal-dia,
 [data-theme="dark"] .cal-grid > .cal-dia { border-color: #3b506d !important; background: #1d2a40 !important; }
 .cal-grid > .cal-dia.hoje { border-color: var(--verde) !important; background: var(--verde-claro) !important; }
+.cal-grid > .cal-vazio { min-height: 76px; }
 .cal-num { font-size: 14px; font-weight: 600; color: var(--texto); }
 .cal-dia.hoje { border-color: var(--verde); background: var(--verde-claro); }
 .cal-dia.hoje .cal-num { color: var(--verde-escuro); font-weight: 800; }
