@@ -156,7 +156,7 @@
       const ehHoje = mesmoMes && dia === diaHoje;
       html += '<div class="cal-dia' + (ehHoje ? " hoje" : "") + '">' +
         '<span class="cal-num">' + dia + "</span>" +
-        (ehHoje ? '<button type="button" class="btn-refeicoes" data-data="' + valorData(calAno, calMes, dia) + '" title="Ver refeições do dia">Refeições</button>' : "") +
+        (ehHoje ? '<button type="button" class="btn-refeicoes" data-data="' + valorData(calAno, calMes, dia) + '" title="Ver refeições do dia" aria-label="Ver refeições do dia">🍽️</button>' : "") +
         "</div>";
     }
     html += "</div>";
