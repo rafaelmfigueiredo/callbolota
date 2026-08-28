@@ -34,6 +34,10 @@
   const refeicaoFormulario = document.getElementById("refeicao-formulario");
   const refeicoesData = document.getElementById("refeicoes-data");
   const btnFecharRefeicoes = document.getElementById("btn-fechar-refeicoes");
+  const modalHistorico = document.getElementById("modal-historico");
+  const historicoData = document.getElementById("historico-data");
+  const historicoConteudo = document.getElementById("historico-conteudo");
+  const btnFecharHistorico = document.getElementById("btn-fechar-historico");
 
   // Perfil / menu do usuário
   const metaDiaria = document.getElementById("meta-diaria");
@@ -147,6 +151,8 @@
     const diasNoMes = new Date(calAno, calMes + 1, 0).getDate(); // total de dias
     const diaHoje = hoje.getDate();
     const mesmoMes = hoje.getFullYear() === calAno && hoje.getMonth() === calMes;
+    const perfil = Storage.perfilAtual || null;
+    const meta = perfil && Number(perfil.metaCaloriaDiaria);
 
     let html = '<div class="cal-cabecalho">' +
       DIAS_SEMANA.map((d) => '<span class="cal-dow">' + d + "</span>").join("") +
@@ -154,9 +160,15 @@
     for (let v = 0; v < primeiroDia.getDay(); v++) html += '<span class="cal-vazio"></span>';
     for (let dia = 1; dia <= diasNoMes; dia++) {
       const ehHoje = mesmoMes && dia === diaHoje;
-      html += '<div class="cal-dia' + (ehHoje ? " hoje" : "") + '">' +
+      const data = valorData(calAno, calMes, dia);
+      const refeicoes = resumoData(data);
+      const total = totalData(data);
+      const passado = new Date(calAno, calMes, dia) < new Date(hoje.getFullYear(), hoje.getMonth(), diaHoje);
+      const classeTotal = passado && refeicoes.length ? classeCalorias(total, meta) : "";
+      html += '<div class="cal-dia' + (ehHoje ? " hoje" : "") + classeTotal + '>' +
         '<span class="cal-num">' + dia + "</span>" +
-        (ehHoje ? '<button type="button" class="btn-refeicoes" data-data="' + valorData(calAno, calMes, dia) + '" title="Ver refeições do dia" aria-label="Ver refeições do dia">🔖</button>' : "") +
+        (passado && refeicoes.length ? '<span class="total-dia">' + nro(total) + ' kcal</span><button type="button" class="btn-historico-dia" data-data="' + data + '" title="Ver histórico do dia">Histórico</button>' : "") +
+        (ehHoje ? '<button type="button" class="btn-refeicoes" data-data="' + data + '" title="Ver refeições do dia" aria-label="Ver refeições do dia">🔖</button>' : "") +
         "</div>";
     }
     html += "</div>";
@@ -177,6 +189,26 @@
   let dataRefeicaoAberta = null;
   let grupoRefeicaoAberto = null;
   let itensGrupoConfirmados = [];
+  let refeicoesCalendario = [];
+
+  function resumoData(data) {
+    return refeicoesCalendario.filter((item) => item.dataLocal === data);
+  }
+
+  function totalData(data) {
+    return resumoData(data).reduce((total, item) => total + Number(item.totalKcal || 0), 0);
+  }
+
+  function classeCalorias(total, meta) {
+    if (meta == null || total < meta) return " calorias-abaixo";
+    if (Math.abs(total - meta) < 0.01) return " calorias-igual";
+    return " calorias-acima";
+  }
+
+  async function carregarRefeicoesCalendario(usuario) {
+    try { refeicoesCalendario = await Storage.listarHistorico(usuario); }
+    catch (e) { refeicoesCalendario = []; }
+  }
 
   function valorData(ano, mes, dia) {
     return ano + "-" + dois(mes + 1) + "-" + dois(dia);
@@ -194,10 +226,6 @@
     refeicoesData.textContent = textoData(data);
     refeicaoFormulario.classList.add("hidden");
     refeicaoFormulario.innerHTML = "";
-    gruposRefeicao.innerHTML = GRUPOS_REFEICAO.map((grupo) =>
-      '<div class="grupo-refeicao-bloco"><button type="button" class="grupo-refeicao" data-grupo="' + esc(grupo) + '">' +
-      '<span>' + esc(grupo) + '</span><span class="grupo-seta">›</span></button><div class="grupo-refeicao-conteudo" data-grupo-conteudo="' + esc(grupo) + '"></div></div>'
-    ).join("");
   }
 
   function fecharPainelRefeicoes() {
@@ -206,13 +234,19 @@
   }
 
   async function abrirGrupoRefeicao(grupo) {
+    const conteudo = gruposRefeicao.querySelector('[data-grupo-conteudo="' + grupo.replace(/"/g, '&quot;') + '"]');
+    if (!conteudo) return;
+    if (grupoRefeicaoAberto === grupo && !conteudo.classList.contains("hidden")) {
+      conteudo.classList.add("hidden");
+      refeicaoFormulario.classList.add("hidden");
+      grupoRefeicaoAberto = null;
+      return;
+    }
     grupoRefeicaoAberto = grupo;
     gruposRefeicao.querySelectorAll(".grupo-refeicao-conteudo").forEach((conteudo) => {
       conteudo.classList.add("hidden");
       conteudo.innerHTML = "";
     });
-    const conteudo = gruposRefeicao.querySelector('[data-grupo-conteudo="' + grupo.replace(/"/g, '&quot;') + '"]');
-    if (!conteudo) return;
     conteudo.classList.remove("hidden");
     conteudo.appendChild(refeicaoFormulario);
     refeicaoFormulario.classList.remove("hidden");
@@ -266,6 +300,8 @@
       id: idGrupoRefeicao(), dataLocal: dataRefeicaoAberta, data: dataRefeicaoAberta + "T12:00:00",
       grupo: grupoRefeicaoAberto, itens: itensGrupoConfirmados, totalKcal: total,
     });
+    await carregarRefeicoesCalendario(Storage.usuarioAtual());
+    renderCalendario();
   }
 
   async function confirmarLinhaRefeicao(linha) {
@@ -470,6 +506,8 @@
     dashUser.textContent = "👤 " + usuario;
     mostrarVista("dashboard");
     await renderMetaDiaria(usuario);
+    Storage.perfilAtual = await Storage.carregarPerfil(usuario);
+    await carregarRefeicoesCalendario(usuario);
     // Aplica o tema salvo como preferência do usuário (fora dos dados)
     const tema = await Storage.carregarTema(usuario);
     aplicarTema(tema === "escuro" ? "escuro" : "claro");
@@ -587,7 +625,7 @@
         itensGrupoConfirmados.splice(Number(linha.dataset.itemIndex), 1);
         linha.remove();
         atualizarTotalGrupo();
-        salvarGrupoRefeicao().catch(() => {});
+        salvarGrupoRefeicao().then(() => carregarRefeicoesCalendario(Storage.usuarioAtual())).then(renderCalendario).catch(() => {});
       } else if (refeicaoFormulario.querySelectorAll(".item-refeicao-form").length > 1) {
         linha.remove();
       }
@@ -595,6 +633,23 @@
     }
   });
   btnFecharRefeicoes.addEventListener("click", fecharPainelRefeicoes);
+  btnFecharHistorico.addEventListener("click", () => modalHistorico.classList.add("hidden"));
+  modalHistorico.addEventListener("click", (e) => {
+    if (e.target === modalHistorico) modalHistorico.classList.add("hidden");
+  });
+  calEl.addEventListener("click", (e) => {
+    const botao = e.target.closest(".btn-historico-dia");
+    if (!botao) return;
+    const data = botao.dataset.data;
+    const grupos = resumoData(data);
+    historicoData.textContent = textoData(data);
+    historicoConteudo.innerHTML = grupos.map((grupo) =>
+      '<section class="historico-grupo"><h3>' + esc(grupo.grupo) + '</h3>' +
+      (grupo.itens || []).map((item) => '<div class="historico-item"><span>' + esc(item.alimento) + ' · ' + esc(item.quantidade) + ' ' + esc(item.unidade) + '</span><strong>' + nro(item.kcal) + ' kcal</strong></div>').join("") +
+      '<div class="historico-total">Total do grupo: ' + nro(grupo.totalKcal) + ' kcal</div></section>'
+    ).join("") + '<div class="historico-total geral">Total do dia: ' + nro(totalData(data)) + ' kcal</div>';
+    modalHistorico.classList.remove("hidden");
+  });
 
   // Tempo real
   // (formulário de cálculo removido nesta versão — tela principal agora é o calendário)

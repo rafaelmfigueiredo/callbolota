@@ -176,6 +176,12 @@ input[type="date"] { color-scheme: light dark; }
 .cal-num { font-size: 14px; font-weight: 600; color: var(--texto); }
 .cal-dia.hoje { border-color: var(--verde); background: var(--verde-claro); }
 .cal-dia.hoje .cal-num { color: var(--verde-escuro); font-weight: 800; }
+.cal-dia.calorias-abaixo { background: #dff5e5; border-color: #65bd7c; }
+.cal-dia.calorias-igual { background: #fff0d8; border-color: #f0a64a; }
+.cal-dia.calorias-acima { background: #ffe0e0; border-color: #df6b6b; }
+.total-dia { display: block; margin-top: 8px; color: var(--texto); font-size: 12px; font-weight: 800; }
+.btn-historico-dia { margin-top: 4px; border: 1px solid var(--cinza); border-radius: 6px; background: var(--superficie); color: var(--texto); font-size: 10px; font-weight: 700; padding: 3px 5px; cursor: pointer; }
+.btn-historico-dia:hover { border-color: var(--verde); color: var(--verde-escuro); }
 .btn-refeicoes {
   position: absolute; z-index: 2; top: 4px; right: 4px;
   border: 1px solid var(--laranja); border-radius: 999px; background: var(--laranja); color: #fff;
@@ -228,6 +234,14 @@ input[type="date"] { color-scheme: light dark; }
 .resultado-refeicao { margin-top: 12px; padding: 10px; border-radius: 9px; font-size: 13px; }
 .resultado-refeicao.ok { background: var(--verde-claro); border: 1px solid var(--verde); }
 .resultado-refeicao.erro { background: var(--erro-fundo); color: var(--erro); }
+.modal-historico-box { max-width: 620px; }
+.historico-detalhes { display: grid; gap: 12px; max-height: 55vh; overflow-y: auto; }
+.historico-grupo { border: 1px solid var(--borda); border-radius: 9px; padding: 10px; background: var(--superficie-2); }
+.historico-grupo h3 { color: var(--verde-escuro); font-size: 15px; margin-bottom: 6px; }
+.historico-item { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 13px; }
+.historico-item strong { color: var(--laranja); white-space: nowrap; }
+.historico-total { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--borda); text-align: right; font-weight: 800; color: var(--verde-escuro); }
+.historico-total.geral { font-size: 16px; }
 .resultado-item { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; }
 .total-refeicao { border-top: 1px solid var(--verde); margin-top: 7px; padding-top: 8px; color: var(--verde-escuro); font-size: 15px; font-weight: 800; text-align: right; }
 @media (max-width: 900px) {

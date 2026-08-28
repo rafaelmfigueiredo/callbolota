@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Callbolômetro — Calculadora de Calorias</title>
-  <link rel="stylesheet" href="css/style.css?v=19" />
+  <link rel="stylesheet" href="css/style.css?v=20" />
 </head>
 <body>
   <!-- ============ TELA DE LOGIN / CADASTRO ============ -->
@@ -144,10 +144,21 @@
     </div>
   </div>
 
+  <div id="modal-historico" class="modal hidden">
+    <div class="modal-box modal-historico-box">
+      <div class="modal-head">
+        <h2 id="historico-titulo">Histórico de refeições</h2>
+        <p id="historico-data"></p>
+      </div>
+      <div id="historico-conteudo" class="historico-detalhes"></div>
+      <button type="button" id="btn-fechar-historico" class="btn ghost">Fechar</button>
+    </div>
+  </div>
+
   <script src="js/motor.js?v=11"></script>
   <script src="js/storage.js?v=12"></script>
   <!-- dados.js contém a base embutida p/ funcionar offline (file://) -->
   <script src="js/dados.js?v=2"></script>
-  <script src="js/app.js?v=19"></script>
+  <script src="js/app.js?v=20"></script>
 </body>
 </html>
