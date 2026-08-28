@@ -72,8 +72,9 @@ const Storage = (() => {
   async function salvarRefeicao(usuario, refeicao) { return requisicao("/api/meals", { method: "POST", body: JSON.stringify(refeicao) }); }
   async function removerRefeicao(usuario, id) { return requisicao("/api/meals?id=" + encodeURIComponent(id), { method: "DELETE" }); }
   async function listarHistorico() { return (await requisicao("/api/meals")).refeicoes || []; }
+  async function buscarAlimentosOnline(termo) { return (await requisicao("/api/food-search?q=" + encodeURIComponent(termo))).alimentos || []; }
 
-  return { inicializar, registrar, entrar, sair, usuarioAtual, usuarioInfo, carregarPerfil, salvarPerfil, carregarTema, salvarTema, salvarRefeicao, removerRefeicao, listarHistorico };
+  return { inicializar, registrar, entrar, sair, usuarioAtual, usuarioInfo, carregarPerfil, salvarPerfil, carregarTema, salvarTema, salvarRefeicao, removerRefeicao, listarHistorico, buscarAlimentosOnline };
 })();
 
 if (typeof window !== "undefined") window.Storage = Storage;

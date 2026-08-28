@@ -68,6 +68,10 @@ kcal       = (peso_total / 100) × kcal_por_100g
 - Quando disponível, cada alimento usa seu próprio peso de referência para a medida. Ex.: `1 fatia de pão integral = 25 g` e `1 unidade de ovo = 50 g`.
 - Os valores são referências médias de composição de alimentos; produtos industrializados devem ser conferidos no rótulo, pois marca, receita e tamanho podem alterar o resultado.
 
+### Busca online complementar
+
+Quando um alimento não é encontrado na base local, o servidor consulta a API gratuita da Open Food Facts. O resultado só entra no cálculo depois que o usuário escolhe uma sugestão. As respostas ficam em cache na tabela `alimentos_cache` do SQLite, reduzindo consultas repetidas e mantendo a base local como primeira opção.
+
 **Alimentos na base (TACO simplificada):**
 
 | Alimento | kcal/100g | Sinônimos |

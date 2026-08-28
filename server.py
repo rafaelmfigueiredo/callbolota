@@ -6,6 +6,7 @@ import secrets
 import sqlite3
 import threading
 import urllib.parse
+import urllib.request
 from datetime import datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -73,6 +74,11 @@ def init_db():
                         criada_em TEXT NOT NULL,
                         FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
                     );
+                    CREATE TABLE IF NOT EXISTS alimentos_cache (
+                        termo TEXT PRIMARY KEY,
+                        dados TEXT NOT NULL,
+                        consultado_em TEXT NOT NULL
+                    );
         """)
 
 
@@ -82,6 +88,51 @@ def read_json(handler):
         return json.loads(handler.rfile.read(length) or b"{}")
     except (ValueError, UnicodeDecodeError):
         return {}
+
+
+def buscar_open_food_facts(termo):
+    chave = " ".join(termo.lower().split())
+    with db() as connection:
+        cached = connection.execute("SELECT dados FROM alimentos_cache WHERE termo = ?", (chave,)).fetchone()
+    if cached:
+        return json.loads(cached["dados"])
+
+    consulta = urllib.parse.urlencode({
+        "search_terms": termo,
+        "search_simple": 1,
+        "action": "process",
+        "json": 1,
+        "page_size": 8,
+        "fields": "product_name,brands,nutriments",
+    })
+    url = "https://world.openfoodfacts.org/cgi/search.pl?" + consulta
+    requisicao = urllib.request.Request(url, headers={"User-Agent": "Callbolometro/1.0 (calorie calculator)"})
+    resultados = []
+    try:
+        with urllib.request.urlopen(requisicao, timeout=8) as resposta:
+            payload = json.loads(resposta.read().decode("utf-8"))
+        for produto in payload.get("products", []):
+            nome = str(produto.get("product_name", "")).strip()
+            nutrimentos = produto.get("nutriments", {})
+            kcal = nutrimentos.get("energy-kcal_100g")
+            if not nome or kcal in (None, ""):
+                continue
+            try:
+                kcal = float(kcal)
+            except (TypeError, ValueError):
+                continue
+            resultados.append({
+                "nome": nome,
+                "marca": str(produto.get("brands", "")).strip(),
+                "kcal_por_100g": kcal,
+                "fonte": "Open Food Facts",
+                "medidas_caseiras": {"grama": 1},
+            })
+    except (OSError, ValueError):
+        resultados = []
+    with db() as connection:
+        connection.execute("INSERT OR REPLACE INTO alimentos_cache (termo, dados, consultado_em) VALUES (?, ?, ?)", (chave, json.dumps(resultados, ensure_ascii=False), now()))
+    return resultados
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -149,6 +200,14 @@ class Handler(SimpleHTTPRequestHandler):
             for row in rows:
                 meals.append({"id": row["id"], "dataLocal": row["data_local"], "grupo": row["grupo"], "itens": json.loads(row["dados"]), "totalKcal": row["total_kcal"], "data": row["criado_em"]})
             self.send_json(200, {"ok": True, "refeicoes": meals})
+            return
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/api/food-search":
+            termo = urllib.parse.parse_qs(parsed.query).get("q", [""])[0].strip()
+            if len(termo) < 2:
+                self.send_json(400, {"ok": False, "erro": "Informe pelo menos 2 caracteres."})
+                return
+            self.send_json(200, {"ok": True, "alimentos": buscar_open_food_facts(termo)})
             return
         super().do_GET()
 

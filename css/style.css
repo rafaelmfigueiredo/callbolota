@@ -229,6 +229,10 @@ input[type="date"] { color-scheme: light dark; }
 .btn-confirmar-item:hover { background: var(--verde-escuro); }
 .kcal-item { display: flex; align-items: center; height: 36px; color: var(--laranja); font-size: 11px; font-weight: 800; white-space: nowrap; }
 .linha-erro input, .linha-erro select { border-color: var(--erro); }
+.sugestoes-online { display: grid; gap: 5px; margin: -4px 0 4px; padding: 8px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie-2); color: var(--cinza); font-size: 11px; }
+.sugestao-online { border: 1px solid var(--borda); border-radius: 6px; padding: 6px; background: var(--superficie); color: var(--texto); cursor: pointer; text-align: left; font-size: 11px; }
+.sugestao-online:hover { border-color: var(--verde); color: var(--verde-escuro); }
+.sugestoes-online.sem-resultado { color: var(--erro); }
 .btn-adicionar-item { margin: 12px 0; border: 1px dashed var(--verde); border-radius: 8px; padding: 8px; width: 100%; background: var(--verde-claro); color: var(--verde-escuro); font-weight: 700; cursor: pointer; }
 .btn-adicionar-item:hover { border-color: var(--verde-escuro); filter: brightness(.98); }
 .btn-calcular-refeicao { width: 100%; }

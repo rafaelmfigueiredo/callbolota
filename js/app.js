@@ -190,6 +190,7 @@
   let grupoRefeicaoAberto = null;
   let itensGrupoConfirmados = [];
   let refeicoesCalendario = [];
+  const sugestoesOnline = [];
 
   function resumoData(data) {
     return refeicoesCalendario.filter((item) => item.dataLocal === data);
@@ -321,6 +322,20 @@
     } catch (e) {
       linha.classList.add("linha-erro");
       linha.title = e.message;
+      const sugestoes = await Storage.buscarAlimentosOnline(alimento).catch(() => []);
+      const antigos = linha.parentElement.querySelector(".sugestoes-online");
+      if (antigos) antigos.remove();
+      if (!sugestoes.length) {
+        linha.insertAdjacentHTML("afterend", '<div class="sugestoes-online sem-resultado">Alimento não encontrado na base local nem na Open Food Facts.</div>');
+        return;
+      }
+      const ids = sugestoes.map((sugestao) => {
+        sugestoesOnline.push(sugestao);
+        return sugestoesOnline.length - 1;
+      });
+      linha.insertAdjacentHTML("afterend", '<div class="sugestoes-online"><span>Escolha um resultado online:</span>' + ids.map((id) =>
+        '<button type="button" class="sugestao-online" data-sugestao="' + id + '">' + esc(sugestoesOnline[id].nome) + (sugestoesOnline[id].marca ? ' (' + esc(sugestoesOnline[id].marca) + ')' : '') + ' · ' + nro(sugestoesOnline[id].kcal_por_100g) + ' kcal/100 g</button>'
+      ).join("") + '</div>');
     }
   }
 
@@ -616,6 +631,20 @@
     const confirmar = e.target.closest(".btn-confirmar-item");
     if (confirmar) {
       confirmarLinhaRefeicao(confirmar.closest(".item-refeicao-form"));
+      return;
+    }
+    const sugestao = e.target.closest(".sugestao-online");
+    if (sugestao) {
+      const alimento = sugestoesOnline[Number(sugestao.dataset.sugestao)];
+      if (alimento) {
+        BASE.alimentos.push(alimento);
+        const bloco = sugestao.closest(".sugestoes-online");
+        const linha = bloco.previousElementSibling;
+        linha.classList.remove("linha-erro");
+        linha.querySelector(".campo-alimento").value = alimento.nome;
+        bloco.remove();
+        confirmarLinhaRefeicao(linha);
+      }
       return;
     }
     const remover = e.target.closest(".btn-remover-item");
