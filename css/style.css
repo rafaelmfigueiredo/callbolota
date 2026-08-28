@@ -141,10 +141,10 @@ input[type="date"] { color-scheme: light dark; }
 
 /* ===== Calendário (tela principal) ===== */
 .dashboard-cal {
-  position: relative; max-width: 960px; margin: 24px auto; padding: 0 16px;
+  position: relative; max-width: 1100px; margin: 24px auto; padding: 0 16px;
   display: flex; justify-content: center;
 }
-.cal-card { width: 100%; max-width: 480px; } /* tamanho médio */
+.cal-card { width: 100%; max-width: 720px; } /* tamanho medio */
 .cal-topo {
   display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px;
 }

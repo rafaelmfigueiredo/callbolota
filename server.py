@@ -1,6 +1,7 @@
 import hashlib
 import http.cookies
 import json
+import os
 import secrets
 import sqlite3
 import threading
@@ -10,7 +11,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HOST = "0.0.0.0"
 PORT = 8000
-DB_PATH = "calbolometro.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "calbolometro.db")
 SESSIONS = {}
 LOCK = threading.Lock()
 
@@ -66,6 +67,12 @@ def init_db():
             criado_em TEXT NOT NULL,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
           );
+                    CREATE TABLE IF NOT EXISTS sessoes (
+                        token TEXT PRIMARY KEY,
+                        usuario_id INTEGER NOT NULL,
+                        criada_em TEXT NOT NULL,
+                        FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+                    );
         """)
 
 
@@ -99,7 +106,11 @@ class Handler(SimpleHTTPRequestHandler):
         with LOCK:
             user_id = SESSIONS.get(token.value)
         if not user_id:
-            return None
+            with db() as connection:
+                row = connection.execute("SELECT usuario_id FROM sessoes WHERE token = ?", (token.value,)).fetchone()
+            if not row:
+                return None
+            user_id = row["usuario_id"]
         with db() as connection:
             return connection.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
 
@@ -240,6 +251,8 @@ class Handler(SimpleHTTPRequestHandler):
         token = secrets.token_urlsafe(32)
         with LOCK:
             SESSIONS[token] = user_id
+        with db() as connection:
+            connection.execute("INSERT OR REPLACE INTO sessoes (token, usuario_id, criada_em) VALUES (?, ?, ?)", (token, user_id, now()))
         cookie = "session=%s; Path=/; HttpOnly; SameSite=Lax" % token
         self.send_json(200, {"ok": True, "usuario": usuario}, cookie)
 
@@ -249,6 +262,8 @@ class Handler(SimpleHTTPRequestHandler):
         if token:
             with LOCK:
                 SESSIONS.pop(token.value, None)
+            with db() as connection:
+                connection.execute("DELETE FROM sessoes WHERE token = ?", (token.value,))
         self.send_json(200, {"ok": True}, "session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax")
 
 
