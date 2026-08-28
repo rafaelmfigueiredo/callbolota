@@ -12,6 +12,7 @@ window.ALIMENTOS_BASE = {
     "colher grande": 40,
     "concha": 100,
     "xicara": 150,
+    "fatia": 25,
     "grama": 1,
     "unidade": 100
   },

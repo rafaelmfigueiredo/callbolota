@@ -62,7 +62,7 @@ kcal       = (peso_total / 100) × kcal_por_100g
 ```
 
 - **Medidas caseiras** (fator em gramas/ml):
-  `colher de sopa 25`, `colher grande 40`, `concha 100`, `xicara 150`, `grama 1`, `unidade 100`
+   `colher de sopa 25`, `colher grande 40`, `concha 100`, `xicara 150`, `fatia 25`, `grama 1`, `unidade 100`
 - O motor **normaliza plurais** (ex.: `colheres grandes` → `colher grande`,
   `xícaras` → `xicara`) e busca alimentos por **sinônimos** (ex.: `feijao` → `Feijão carioca cozido`).
 
