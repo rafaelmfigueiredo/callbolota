@@ -168,11 +168,14 @@ input[type="date"] { color-scheme: light dark; }
   text-align: center; font-size: 12px; font-weight: 700; text-transform: uppercase;
   color: var(--cinza); padding: 4px 0;
 }
-.cal-dia {
-  position: relative; min-height: 56px; border: 1px solid rgba(148, 163, 184, .55) !important; border-radius: 10px;
-  background: var(--superficie-2); padding: 4px; display: flex; flex-direction: column;
+.cal-grid > .cal-dia {
+  position: relative; min-height: 56px; border: 1px solid #b8c5d3 !important; border-radius: 10px;
+  background: var(--superficie-2) !important; padding: 4px; display: flex; flex-direction: column;
   align-items: center; gap: 2px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .03);
 }
+.dark .cal-grid > .cal-dia,
+[data-theme="dark"] .cal-grid > .cal-dia { border-color: #3b506d !important; background: #1d2a40 !important; }
+.cal-grid > .cal-dia.hoje { border-color: var(--verde) !important; background: var(--verde-claro) !important; }
 .cal-num { font-size: 14px; font-weight: 600; color: var(--texto); }
 .cal-dia.hoje { border-color: var(--verde); background: var(--verde-claro); }
 .cal-dia.hoje .cal-num { color: var(--verde-escuro); font-weight: 800; }
