@@ -175,10 +175,10 @@ input[type="date"] { color-scheme: light dark; }
 .cal-dia.hoje { border-color: var(--verde); background: var(--verde-claro); }
 .cal-dia.hoje .cal-num { color: var(--verde-escuro); font-weight: 800; }
 .btn-refeicoes {
-  position: absolute; top: 4px; right: 4px;
-  border: none; border-radius: 999px; background: var(--laranja); color: #fff;
-  font-size: 10px; font-weight: 700; padding: 3px 8px; cursor: pointer; white-space: nowrap;
-  transition: .15s;
+  position: absolute; z-index: 2; top: 4px; right: 4px;
+  border: 1px solid var(--laranja); border-radius: 999px; background: var(--laranja); color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 1; padding: 5px 8px; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, .12); transition: .15s;
 }
 .btn-refeicoes:hover { filter: brightness(.92); }
 .cal-vazio { border-radius: 10px; }
